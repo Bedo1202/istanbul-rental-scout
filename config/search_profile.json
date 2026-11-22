@@ -1,0 +1,31 @@
+
+{
+  "property_type": "apartment",
+  "listing_type": "rent",
+  "rooms": "2+1",
+  "furnished": true,
+  "budget": {
+    "min": 20000,
+    "max": 30000,
+    "currency": "TRY"
+  },
+  "locations": [
+    "Kadikoy",
+    "Maltepe",
+    "Kartal",
+    "Uskudar",
+    "Pendik"
+  ],
+  "transport": {
+    "type": "metro",
+    "preferred_walking_minutes": 10,
+    "maximum_walking_minutes": 15
+  },
+  "scoring": {
+    "price": 35,
+    "location": 30,
+    "transport": 20,
+    "building": 10,
+    "listing_quality": 5
+  }
+}
