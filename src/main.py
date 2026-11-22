@@ -1,10 +1,16 @@
 
 from processing.normalizer import normalize_listing
 
+from database.db_manager import (
+    initialize_database,
+    save_listing,
+    get_all_listings
+)
+
 
 def main():
 
-    # Simulated raw data from a listing source
+    # Sample raw listing data
     raw_data = {
         "ilan_no": "987654",
         "baslik": "Kadikoy 2+1 Esyali Daire",
@@ -18,23 +24,37 @@ def main():
         "metro_distance": 8
     }
 
+    # Step 1: Initialize database
+    initialize_database()
+
+    # Step 2: Normalize raw data
     listing = normalize_listing(
         raw_data,
         source="test_source"
     )
 
-    print("NORMALIZATION TEST")
+    # Step 3: Save listing
+    saved = save_listing(listing)
+
+    if saved:
+        print("New listing saved successfully!")
+    else:
+        print("Listing already exists!")
+
+    # Step 4: Retrieve listings
+    listings = get_all_listings()
+
+    print("\nDATABASE CONTENT")
     print("--------------------")
 
-    print(f"Title: {listing.title}")
-    print(f"Price: {listing.price} TL")
-    print(f"District: {listing.district}")
-    print(f"Rooms: {listing.room_type}")
-    print(f"Furnished: {listing.furnished}")
-    print(f"Neighborhood: {listing.neighborhood}")
-    print(f"Building age: {listing.building_age}")
-    print(f"Metro walking: {listing.metro_walking_minutes} min")
-    print(f"Unique ID: {listing.get_unique_key()}")
+    for item in listings:
+        print(f"ID: {item['id']}")
+        print(f"Title: {item['title']}")
+        print(f"Price: {item['price']} TL")
+        print(f"District: {item['district']}")
+        print("--------------------")
+
+    print(f"Total listings: {len(listings)}")
 
 
 if __name__ == "__main__":
