@@ -1,68 +1,77 @@
 
+from pathlib import Path
+
+from collectors.json_collector import JSONCollector
+from collectors.csv_collector import CSVCollector
+
 from processing.normalizer import normalize_listing
 
 from database.db_manager import (
     initialize_database,
     save_listing,
-    get_all_listings,
-    get_price_history
+    get_all_listings
 )
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def process_listings(raw_listings, source):
+
+    for raw_data in raw_listings:
+
+        listing = normalize_listing(
+            raw_data,
+            source=source
+        )
+
+        result = save_listing(listing)
+
+        print(
+            f"{listing.source_listing_id}: {result}"
+        )
 
 
 def main():
 
-    raw_data = {
-        "ilan_no": "987654",
-        "baslik": "Kadikoy 2+1 Esyali Daire",
-        "fiyat": "26.000 TL",
-        "ilce": "Kadikoy",
-        "oda_sayisi": "2+1",
-        "esyali": "Eşyalı",
-        "url": "https://example.com/listing/987654",
-        "mahalle": "Moda",
-        "bina_yasi": 5,
-        "metro_distance": 8
-    }
+    print("ISTANBUL RENTAL SCOUT")
+    print("=====================")
 
     initialize_database()
 
-    listing = normalize_listing(
-        raw_data,
-        source="test_source"
-    )
+    # JSON Collection
+    json_path = PROJECT_ROOT / "data" / "sample_listings.json"
 
-    result = save_listing(listing)
+    json_collector = JSONCollector(json_path)
+    json_data = json_collector.collect()
 
-    print("DATABASE OPERATION")
-    print("--------------------")
+    print(f"\nJSON records: {len(json_data)}")
 
-    if result == "inserted":
-        print("New listing saved!")
+    process_listings(json_data, "json_import")
 
-    elif result == "price_updated":
-        print("Listing price updated!")
+    # CSV Collection
+    csv_path = PROJECT_ROOT / "data" / "sample_listings.csv"
 
-    else:
-        print("Listing unchanged!")
+    csv_collector = CSVCollector(csv_path)
+    csv_data = csv_collector.collect()
 
+    print(f"\nCSV records: {len(csv_data)}")
+
+    process_listings(csv_data, "csv_import")
+
+    # Database Summary
     listings = get_all_listings()
 
-    print(f"\nTotal listings: {len(listings)}")
+    print("\nDATABASE SUMMARY")
+    print("=====================")
+
+    print(f"Total listings: {len(listings)}")
 
     for item in listings:
 
-        print(f"\nListing: {item['title']}")
-        print(f"Current price: {item['price']} TL")
-
-        history = get_price_history(item["id"])
-
-        print("\nPRICE HISTORY")
-
-        for record in history:
-            print(
-                f"{record['recorded_at']} "
-                f"- {record['price']} TL"
-            )
+        print(f"\nTitle: {item['title']}")
+        print(f"Price: {item['price']} TL")
+        print(f"District: {item['district']}")
 
 
 if __name__ == "__main__":

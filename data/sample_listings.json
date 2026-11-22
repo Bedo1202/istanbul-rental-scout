@@ -1,0 +1,27 @@
+
+[
+  {
+    "ilan_no": "TEST1001",
+    "baslik": "Kadikoy 2+1 Esyali Daire",
+    "fiyat": "27.500 TL",
+    "ilce": "Kadikoy",
+    "oda_sayisi": "2+1",
+    "esyali": "Eşyalı",
+    "url": "https://example.com/listing/TEST1001",
+    "mahalle": "Moda",
+    "bina_yasi": 5,
+    "metro_distance": 8
+  },
+  {
+    "ilan_no": "TEST1002",
+    "baslik": "Maltepe 2+1 Esyali Daire",
+    "fiyat": "24.000 TL",
+    "ilce": "Maltepe",
+    "oda_sayisi": "2+1",
+    "esyali": "Eşyalı",
+    "url": "https://example.com/listing/TEST1002",
+    "mahalle": "Altaycesme",
+    "bina_yasi": 8,
+    "metro_distance": 10
+  }
+]
