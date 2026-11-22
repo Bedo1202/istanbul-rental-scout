@@ -4,17 +4,17 @@ from processing.normalizer import normalize_listing
 from database.db_manager import (
     initialize_database,
     save_listing,
-    get_all_listings
+    get_all_listings,
+    get_price_history
 )
 
 
 def main():
 
-    # Sample raw listing data
     raw_data = {
         "ilan_no": "987654",
         "baslik": "Kadikoy 2+1 Esyali Daire",
-        "fiyat": "27.500 TL",
+        "fiyat": "26.000 TL",
         "ilce": "Kadikoy",
         "oda_sayisi": "2+1",
         "esyali": "Eşyalı",
@@ -24,37 +24,45 @@ def main():
         "metro_distance": 8
     }
 
-    # Step 1: Initialize database
     initialize_database()
 
-    # Step 2: Normalize raw data
     listing = normalize_listing(
         raw_data,
         source="test_source"
     )
 
-    # Step 3: Save listing
-    saved = save_listing(listing)
+    result = save_listing(listing)
 
-    if saved:
-        print("New listing saved successfully!")
-    else:
-        print("Listing already exists!")
-
-    # Step 4: Retrieve listings
-    listings = get_all_listings()
-
-    print("\nDATABASE CONTENT")
+    print("DATABASE OPERATION")
     print("--------------------")
 
-    for item in listings:
-        print(f"ID: {item['id']}")
-        print(f"Title: {item['title']}")
-        print(f"Price: {item['price']} TL")
-        print(f"District: {item['district']}")
-        print("--------------------")
+    if result == "inserted":
+        print("New listing saved!")
 
-    print(f"Total listings: {len(listings)}")
+    elif result == "price_updated":
+        print("Listing price updated!")
+
+    else:
+        print("Listing unchanged!")
+
+    listings = get_all_listings()
+
+    print(f"\nTotal listings: {len(listings)}")
+
+    for item in listings:
+
+        print(f"\nListing: {item['title']}")
+        print(f"Current price: {item['price']} TL")
+
+        history = get_price_history(item["id"])
+
+        print("\nPRICE HISTORY")
+
+        for record in history:
+            print(
+                f"{record['recorded_at']} "
+                f"- {record['price']} TL"
+            )
 
 
 if __name__ == "__main__":
