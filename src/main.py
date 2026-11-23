@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 
 from analysis.filter_engine import filter_listings
+from analysis.scoring_engine import score_listing
+
 from database.db_manager import get_all_listings
 
 
@@ -29,48 +31,69 @@ def main():
     print("ISTANBUL RENTAL SCOUT")
     print("=====================")
 
-    # Load search criteria
     profile = load_search_profile()
-
-    # Retrieve listings from database
     listings = get_all_listings()
 
     print(f"\nTotal listings: {len(listings)}")
 
-    # Apply filtering
     results = filter_listings(
         listings,
         profile
     )
 
-    # Display results
     print("\nFILTERING RESULTS")
     print("=====================")
 
     for status, items in results.items():
+        print(f"{status}: {len(items)}")
 
-        print(f"\n{status}: {len(items)}")
+    # Score matching listings
+    scored_listings = []
 
-        for item in items:
+    for item in results["MATCH"]:
 
-            listing = item["listing"]
+        listing = item["listing"]
 
-            print(
-                f"\n{listing['title']}"
-            )
+        scoring = score_listing(
+            listing,
+            profile
+        )
 
-            print(
-                f"Price: {listing['price']} TL"
-            )
+        scored_listings.append({
+            "listing": listing,
+            "scoring": scoring
+        })
 
-            print(
-                f"District: {listing['district']}"
-            )
+    # Sort from highest to lowest score
+    scored_listings.sort(
+        key=lambda item: item["scoring"]["score"],
+        reverse=True
+    )
 
-            if item["reasons"]:
-                print(
-                    f"Reasons: {', '.join(item['reasons'])}"
-                )
+    print("\nRANKED LISTINGS")
+    print("=====================")
+
+    for rank, item in enumerate(scored_listings, start=1):
+
+        listing = item["listing"]
+        scoring = item["scoring"]
+
+        print(f"\n#{rank} - {listing['title']}")
+        print(f"Price: {listing['price']} TL")
+        print(f"District: {listing['district']}")
+        print(f"Score: {scoring['score']}/100")
+        print(f"Data coverage: {scoring['coverage']}%")
+
+        print("\nScore Breakdown:")
+
+        for criterion, value in scoring["breakdown"].items():
+
+            if value is None:
+                print(f"{criterion}: N/A")
+            else:
+                print(f"{criterion}: {value:.2f}")
+
+        print("---------------------")
 
 
 if __name__ == "__main__":
