@@ -1,35 +1,27 @@
 
+import json
 from pathlib import Path
 
-from collectors.json_collector import JSONCollector
-from collectors.csv_collector import CSVCollector
-
-from processing.normalizer import normalize_listing
-
-from database.db_manager import (
-    initialize_database,
-    save_listing,
-    get_all_listings
-)
+from analysis.filter_engine import filter_listings
+from database.db_manager import get_all_listings
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
-def process_listings(raw_listings, source):
+def load_search_profile():
 
-    for raw_data in raw_listings:
+    profile_path = (
+        PROJECT_ROOT / "config" / "search_profile.json"
+    )
 
-        listing = normalize_listing(
-            raw_data,
-            source=source
-        )
+    with open(
+        profile_path,
+        "r",
+        encoding="utf-8"
+    ) as file:
 
-        result = save_listing(listing)
-
-        print(
-            f"{listing.source_listing_id}: {result}"
-        )
+        return json.load(file)
 
 
 def main():
@@ -37,41 +29,48 @@ def main():
     print("ISTANBUL RENTAL SCOUT")
     print("=====================")
 
-    initialize_database()
+    # Load search criteria
+    profile = load_search_profile()
 
-    # JSON Collection
-    json_path = PROJECT_ROOT / "data" / "sample_listings.json"
-
-    json_collector = JSONCollector(json_path)
-    json_data = json_collector.collect()
-
-    print(f"\nJSON records: {len(json_data)}")
-
-    process_listings(json_data, "json_import")
-
-    # CSV Collection
-    csv_path = PROJECT_ROOT / "data" / "sample_listings.csv"
-
-    csv_collector = CSVCollector(csv_path)
-    csv_data = csv_collector.collect()
-
-    print(f"\nCSV records: {len(csv_data)}")
-
-    process_listings(csv_data, "csv_import")
-
-    # Database Summary
+    # Retrieve listings from database
     listings = get_all_listings()
 
-    print("\nDATABASE SUMMARY")
+    print(f"\nTotal listings: {len(listings)}")
+
+    # Apply filtering
+    results = filter_listings(
+        listings,
+        profile
+    )
+
+    # Display results
+    print("\nFILTERING RESULTS")
     print("=====================")
 
-    print(f"Total listings: {len(listings)}")
+    for status, items in results.items():
 
-    for item in listings:
+        print(f"\n{status}: {len(items)}")
 
-        print(f"\nTitle: {item['title']}")
-        print(f"Price: {item['price']} TL")
-        print(f"District: {item['district']}")
+        for item in items:
+
+            listing = item["listing"]
+
+            print(
+                f"\n{listing['title']}"
+            )
+
+            print(
+                f"Price: {listing['price']} TL"
+            )
+
+            print(
+                f"District: {listing['district']}"
+            )
+
+            if item["reasons"]:
+                print(
+                    f"Reasons: {', '.join(item['reasons'])}"
+                )
 
 
 if __name__ == "__main__":
